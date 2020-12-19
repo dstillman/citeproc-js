@@ -1,8 +1,12 @@
 /*global CSL: true */
 
 CSL.Output.Formatters = (function () {
-    var rexStr = "(?:\u2018|\u2019|\u201C|\u201D| \"| \'|\"|\'|[-\u2013\u2014\/.,;?!:]|\\[|\\]|\\(|\\)|<span style=\"font-variant: small-caps;\">|<span class=\"no(?:case|decor)\">|<\/span>|<\/?(?:i|sc|b|sub|sup)>)";
-    var tagDoppel = new CSL.Doppeler(rexStr, function(str) {
+    var tagPunctRex = "(?:\u2018|\u2019|\u201C|\u201D| \"| \'|\"|\'|[-\u2013\u2014\/.,;?!:]|\\[|\\]|\\(|\\)|<span style=\"font-variant: small-caps;\">|<span class=\"no(?:case|decor)\">|<\/span>|<\/?(?:i|sc|b|sub|sup)>)";
+    var tagPunctDoppel = new CSL.Doppeler(tagPunctRex, function(str) {
+        return str.replace(/(<span)\s+(class=\"no(?:case|decor)\")[^>]*(>)/g, "$1 $2$3").replace(/(<span)\s+(style=\"font-variant:)\s*(small-caps);?(\")[^>]*(>)/g, "$1 $2 $3;$4$5");
+    });
+    var tagRex = "(?:<span class=\"no(?:case|decor)\">|<\/span>|<\/?(?:i|sc|b|sub|sup)>)";
+    var tagDoppel = new CSL.Doppeler(tagRex, function(str) {
         return str.replace(/(<span)\s+(class=\"no(?:case|decor)\")[^>]*(>)/g, "$1 $2$3").replace(/(<span)\s+(style=\"font-variant:)\s*(small-caps);?(\")[^>]*(>)/g, "$1 $2 $3;$4$5");
     });
     
@@ -37,7 +41,7 @@ CSL.Output.Formatters = (function () {
         if (!string) {
             return "";
         }
-        config.doppel = tagDoppel.split(string);
+        config.doppel = tagPunctDoppel.split(string);
         var quoteParams = {
             " \"": {
                 opener: " \'",
@@ -174,7 +178,7 @@ CSL.Output.Formatters = (function () {
         }
 
         // Recombine the string
-        return tagDoppel.join(config.doppel);
+        return tagPunctDoppel.join(config.doppel);
     }
 
     /**
@@ -375,6 +379,7 @@ CSL.Output.Formatters = (function () {
         return _textcaseEngine.call(state, config, string);
     }
     return {
+        tagDoppel: tagDoppel,
         passthrough: passthrough,
         lowercase: lowercase,
         uppercase: uppercase,
